@@ -13,30 +13,30 @@ class LRUCache(BaseCaching):
     """
 
     def __init__(self):
+        ''' Initialize class instance. '''
         super().__init__()
-        self.total_count = 0
-        self.counter = {}
+        self.keys = []
 
     def put(self, key, item):
-        """
-        Add key/item pair into cache.
-        If cache is full, remove the first item and add the new item
-        """
-        if len(self.cache_data) >= BaseCaching.MAX_ITEMS:
-            least_used = min(self.counter, key=self.counter.get)
-            print(self.counter)
-            self.cache_data.pop(least_used)
-            self.counter.pop(least_used)
-            print('DISCARD:', least_used)
-        if key and item:
+        ''' Add key/value pair to cache data.
+            If cache is at max capacity (specified by BaseCaching.MAX_ITEMS),
+            discard least recently used entry in cache to accommodate new
+            entry. '''
+        if key is not None and item is not None:
             self.cache_data[key] = item
-            self.counter[key] = self.total_count
-            self.total_count += 1
+            if key not in self.keys:
+                self.keys.append(key)
+            else:
+                self.keys.append(self.keys.pop(self.keys.index(key)))
+            if len(self.keys) > BaseCaching.MAX_ITEMS:
+                discard = self.keys.pop(0)
+                del self.cache_data[discard]
+                print('DISCARD: {:s}'.format(discard))
 
     def get(self, key):
-        """
-        Get item with key from cache
-        """
-        self.counter[key] = self.total_count
-        self.total_count += 1
-        return self.cache_data.get(key, None)
+        ''' Return value stored in `key` key of cache.
+            If key is None or does not exist in cache, return None. '''
+        if key is not None and key in self.cache_data:
+            self.keys.append(self.keys.pop(self.keys.index(key)))
+            return self.cache_data[key]
+        return None
